@@ -15,6 +15,7 @@ mongoose.connection.on('connected', async () => {
         FechaIngreso: new Date(),
         Correo: 'ruben@gmail.com',
         Contraseña: 'root321',
+        Departamento: 'global',
         Puesto: 'Global',
         Escolaridad: 'Ingenieria en Alimentos',
         TipoUsuario: 'Administrador'
