@@ -70,7 +70,7 @@ const ReporteF = () => {
             try {
                 const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/ishikawa`);
                 const dataFiltrada = response.data.filter(item => 
-                item.estado === 'En revisión' ||  item.estado === 'revisado' ||  item.estado === 'rechazado' ) ;
+                item.estado === 'En revisión' || item.estado === 'Aprobado' ||  item.estado === 'Revisado' ||  item.estado === 'Rechazado' ) ;
                 setIshikawas(dataFiltrada);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -159,11 +159,12 @@ const ReporteF = () => {
                         let estadosRevisados = 0;
                         const ishikawasFiltradas = ishikawas.filter(ishikawa =>
                             ishikawa.idRep === dato._id && 
-                            (ishikawa.estado === 'En revisión' || ishikawa.estado === 'revisado' || ishikawa.estado === 'rechazado')
+                            (ishikawa.estado === 'En revisión' || ishikawa.estado === 'Aprobado'|| 
+                            ishikawa.estado === 'Revisado' || ishikawa.estado === 'Rechazado')
                         );
     
                         ishikawasFiltradas.forEach(ishikawa => {
-                            if (ishikawa.estado === 'revisado') estadosRevisados++;
+                            if (ishikawa.estado === 'Revisado') estadosRevisados++;
                         });
     
                         const porcentaje = (estadosRevisados > 0 && sumaNC > 0) ? (estadosRevisados * 100) / sumaNC : 0;
