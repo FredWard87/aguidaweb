@@ -1,0 +1,46 @@
+.mens-error{
+    display: block;
+    margin-top: 15%;
+    margin-left: 25%;
+    padding: 30px;
+    width: 50%;
+    height: 60%;
+    border-radius: 20px;
+    justify-content: center;
+    font-size: 50px;
+    background-color: aliceblue;
+}
+
+.buttons-g{
+    position: absolute;
+    display: flex;
+    justify-content: end;
+    gap: 10px;
+}
+
+.buttons-g button{
+    width: 10rem;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    color: #ffffff;
+    font-weight: bold;
+    background-color: #00cc7e;
+}
+
+.buttons-g button:hover{
+    background-color: #00804f;
+}
+
+
+.nota-rechazo-container{
+    margin-top: 50px;
+    position: absolute;
+}
+
+/* En tu archivo CSS, por ejemplo, IshikawaRev.css */
+.no-border {
+    border: none;
+    outline: none;
+}
