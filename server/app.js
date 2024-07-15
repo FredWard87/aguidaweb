@@ -48,8 +48,16 @@ app.use('/auth', authRoutes);
 app.use('/foto', fotoRoutes);
 app.use('/ishikawa', ishikawa);
 
-// Manejar la ruta raíz
-app.get('/', (req, res) => {
+// Servir archivos estáticos de la aplicación React
+app.use(express.static(path.join(__dirname, 'administrador/build')));
+
+// Manejar todas las rutas desconocidas y redirigir a index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'administrador/build', 'index.html'));
+});
+
+// Manejar la ruta raíz de la API
+app.get('/api', (req, res) => {
   res.send('Bienvenido a la API de Aguida');
 });
 
@@ -58,6 +66,7 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500);
@@ -67,7 +76,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Error handler
+// Error handler para renderizar la página de error
 app.use(function(err, req, res, next) {
   // Set locals, only providing error in development
   res.locals.message = err.message;
