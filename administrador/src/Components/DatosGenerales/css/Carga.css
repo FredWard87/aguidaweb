@@ -1,0 +1,30 @@
+.upload-container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .dropzone {
+    border: 2px dashed #cccccc;
+    padding: 20px;
+    cursor: pointer;
+  }
+  
+  .dropzone.active {
+    border-color: #2196f3;
+  }
+  
+  .save-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3085d6;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  

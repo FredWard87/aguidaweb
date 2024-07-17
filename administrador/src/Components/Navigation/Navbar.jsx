@@ -113,6 +113,8 @@ function DrawerList({ handleLogout }) {
       toggleSubmenu: toggleCalendariosSubmenu
     },
     { text: "Estadisticas", href: "/estadisticas" },
+    { text: "carga de reportes", href: "/cargamasiva" },
+
     
   ];
 

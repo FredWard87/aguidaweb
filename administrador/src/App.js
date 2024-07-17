@@ -18,6 +18,7 @@ import Calendarios from './Components/Calendarios/CalendarioGeneral'
 import Departaments from './Components/Departaments/Departaments';
 import Estadisticas from './Components/Estadisticas/estadisticas'
 import Diagrama from './Components/DiagramaRe/Diagrama';
+import CargaMasiva from './Components/DatosGenerales/cargaMasiva'
 
 
 export const UserContext = createContext(null);
@@ -29,6 +30,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Login />} /> 
+          <Route path="/cargamasiva" element={<CargaMasiva/>}/>
           <Route path="/datos" element={<Datos/>}/>
           <Route path="/programa" element={<Programas/>}/>
           <Route path="/estadisticas" element={<Estadisticas />} />
