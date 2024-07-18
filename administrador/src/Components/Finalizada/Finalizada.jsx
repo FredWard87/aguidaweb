@@ -282,7 +282,7 @@ const Finalizada = () => {
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>Objetivo de ejemplo</td>
+                                                        <td>Verificar el grado de cumplimiento con los documentos de referencia Sistema de Gestión de Inocuidad Alimentaria y Programa de Prerrequisitos</td>
                                                     </tr>
                                                 </tbody>
                                             </table>

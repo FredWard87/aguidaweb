@@ -376,7 +376,7 @@ const Reporte = () => {
                                                     <th colSpan="1" className="conformity-header-repo">Objetivo</th>
                                                 </tr>
                                             </thead>
-                                            <div>Objetivo de ejemplo</div>
+                                            <div>Verificar el grado de cumplimiento con los documentos de referencia Sistema de Gestión de Inocuidad Alimentaria y Programa de Prerrequisitos</div>
                                         </table>
 
                                         <table>
