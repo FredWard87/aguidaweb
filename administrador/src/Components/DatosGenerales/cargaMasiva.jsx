@@ -30,10 +30,13 @@ const CargaMasiva = () => {
       console.log('Datos extraídos del archivo Excel:', jsonData);
 
       // Validación de campos requeridos
-      const requiredFields = ['TipoAuditoria', 'FechaInicio', 'FechaFin', 'Duracion', 'Departamento', 'AreasAudi', 'Auditados', 'AuditorLider', 'AuditorLiderEmail', 'Observador'];
-      const missingFields = jsonData.filter(item => 
-        item.TipoAuditoria && requiredFields.some(field => !item[field])
-      );
+      const requiredFields = [
+        'TipoAuditoria', 'FechaInicio', 'FechaFin', 'Duracion', 'Departamento',
+        'AreasAudi', 'Auditados', 'AuditorLider', 'AuditorLiderEmail', 'EquipoAuditor_Nombre', 'EquipoAuditor_Correo', 'Observador'
+      ];
+
+      const mainData = jsonData[0];
+      const missingFields = requiredFields.filter(field => !mainData[field]);
 
       if (missingFields.length > 0) {
         console.error('Faltan campos requeridos:', missingFields);
@@ -43,22 +46,23 @@ const CargaMasiva = () => {
 
       // Transformar datos del programa
       let currentAudit = {
-        TipoAuditoria: jsonData[0].TipoAuditoria,
-        FechaInicio: jsonData[0].FechaInicio,
-        FechaFin: jsonData[0].FechaFin,
-        Duracion: jsonData[0].Duracion,
-        Departamento: jsonData[0].Departamento,
-        AreasAudi: jsonData[0].AreasAudi,
-        Auditados: jsonData[0].Auditados,
-        AuditorLider: jsonData[0].AuditorLider,
-        AuditorLiderEmail: jsonData[0].AuditorLiderEmail,
-        Observador: jsonData[0].Observador,
-        NombresObservadores: jsonData[0].NombresObservadores,
-        Estado: jsonData[0].Estado,
-        PorcentajeTotal: jsonData[0].PorcentajeTotal,
-        FechaElaboracion: jsonData[0].FechaElaboracion,
-        Comentario: jsonData[0].Comentario,
-        Estatus: jsonData[0].Estatus,
+        TipoAuditoria: mainData.TipoAuditoria,
+        FechaInicio: mainData.FechaInicio,
+        FechaFin: mainData.FechaFin,
+        Duracion: mainData.Duracion,
+        Departamento: mainData.Departamento,
+        AreasAudi: mainData.AreasAudi,
+        Auditados: mainData.Auditados,
+        AuditorLider: mainData.AuditorLider,
+        AuditorLiderEmail: mainData.AuditorLiderEmail,
+        EquipoAuditor: [],
+        Observador: mainData.Observador,
+        NombresObservadores: mainData.NombresObservadores,
+        Estado: mainData.Estado,
+        PorcentajeTotal: mainData.PorcentajeTotal,
+        FechaElaboracion: mainData.FechaElaboracion,
+        Comentario: mainData.Comentario,
+        Estatus: mainData.Estatus,
         Programa: []
       };
 
@@ -90,6 +94,14 @@ const CargaMasiva = () => {
           Observacion: row.Programa_Observacion || '', // Valor por defecto
           Hallazgo: row.Programa_Hallazgo || '', // Valor por defecto
         });
+
+        // Procesar EquipoAuditor si está presente
+        if (row.EquipoAuditor_Nombre && row.EquipoAuditor_Correo) {
+          currentAudit.EquipoAuditor.push({
+            Nombre: row.EquipoAuditor_Nombre,
+            Correo: row.EquipoAuditor_Correo
+          });
+        }
       });
 
       // Añadir el último programa

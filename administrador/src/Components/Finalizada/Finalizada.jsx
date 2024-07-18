@@ -354,11 +354,10 @@ const Finalizada = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {dato.Programa.map((programa, programIdx) =>
+                                                    {dato.Programa.map((programa, programIdx) =>
                                                             programa.Descripcion.map((desc, descIdx) => {
-                                                                const base64String = desc.Hallazgo.startsWith('data:image/png;base64,')
-                                                                    ? desc.Hallazgo
-                                                                    : `data:image/png;base64,${desc.Hallazgo}`;
+                                                                const base64Prefix = 'data:image/png;base64,';
+                                                                const isBase64Image = desc.Hallazgo.includes(base64Prefix);
 
                                                                 if (desc.Criterio !== 'NA' && desc.Criterio !== 'Conforme') {
                                                                     const ishikawa = ishikawas.find(ish => {
@@ -378,15 +377,19 @@ const Finalizada = () => {
                                                                             <td className='alingR'>{desc.Requisito}</td>
                                                                             <td>{desc.Criterio}</td>
                                                                             <td>{desc.Observacion}</td>
-                                                                            <td>
-                                                                                {desc.Hallazgo ? (
+                                                                            <td key={descIdx}>
+                                                                            {desc.Hallazgo ? (
+                                                                                isBase64Image ? (
                                                                                     <img
-                                                                                        src={base64String}
+                                                                                        src={desc.Hallazgo}
                                                                                         alt="Evidencia"
                                                                                         className="hallazgo-imagen"
                                                                                     />
-                                                                                ) : null}
-                                                                            </td>
+                                                                                ) : (
+                                                                                    <span>{desc.Hallazgo}</span>
+                                                                                )
+                                                                            ) : null}
+                                                                        </td>
                                                                             <td>{ishikawa ? (ishikawa.actividades.length > 0 ? ishikawa.actividades[0].actividad : '') : ''}</td>
                                                                             <td>{ishikawa ? (ishikawa.actividades.length > 0 ? ishikawa.actividades[0].responsable : '') : ''}</td>
                                                                             <td>
