@@ -5,10 +5,13 @@ import { UserContext } from '../../App';
 import './css/login.css';
 import logo from '../assets/img/logoAguida.png';
 import Swal from 'sweetalert2';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ Correo: '', Contraseña: '' });
   const [error] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { setUserData } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -48,41 +51,48 @@ const LoginForm = () => {
     }
   };
 
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className='login-container-all'>
-    <div className="login-container">
-      <div className="form-group">
-        <div className='espacio'>
-       <img src={logo} alt="Logo Empresa" className="logo-empresa-login" />
-       </div>
-       </div>
-      {error && <p className="error-message">{error}</p>}
-      <form className="login-form" onSubmit={handleSubmit}>
+      <div className="login-container">
         <div className="form-group">
-          <label htmlFor="Correo"></label>
-          <input
-            type="email"
-            name="Correo"
-            value={formData.Correo}
-            onChange={handleChange}
-            placeholder="Correo electrónico"
-            required
-          />
+          <div className='espacio'>
+            <img src={logo} alt="Logo Empresa" className="logo-empresa-login" />
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="Contraseña"></label>
-          <input
-            type="password"
-            name="Contraseña"
-            value={formData.Contraseña}
-            onChange={handleChange}
-            placeholder="Contraseña"
-            required
-          />
-        </div>
-        <button type="submit" className="btn-login">Iniciar Sesión</button>
-      </form>
-    </div>
+        {error && <p className="error-message">{error}</p>}
+        <form className="login-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="Correo"></label>
+            <input
+              type="email"
+              name="Correo"
+              value={formData.Correo}
+              onChange={handleChange}
+              placeholder="Correo electrónico"
+              required
+            />
+          </div>
+          <div className="form-group password-group">
+            <label htmlFor="Contraseña"></label>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="Contraseña"
+              value={formData.Contraseña}
+              onChange={handleChange}
+              placeholder="Contraseña"
+              required
+            />
+            <span className="password-toggle-icon" onClick={toggleShowPassword}>
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+            </span>
+          </div>
+          <button type="submit" className="btn-login">Iniciar Sesión</button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -4,6 +4,8 @@ import Navigation from "../Navigation/Navbar";
 import Logo from "../../assets/img/logoAguida.png";
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import IshikawaImg from '../../assets/img/Ishikawa-transformed.png';
 import Swal from 'sweetalert2';
 
@@ -86,6 +88,36 @@ const IshikawaRev = () => {
         setCorrecciones([...correcciones, nuevaCorreccion]);
         setNuevaCorreccion({ actividad: '', responsable: '', fechaCompromiso: '', cerrada: '' });
     };
+
+    const handlePrintPDF = () => {
+        const input = document.getElementById('pdf-content');
+        html2canvas(input)
+            .then((canvas) => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('landscape', 'cm', 'letter'); // Modo horizontal, tamaño carta
+                const imgWidth = pdf.internal.pageSize.getWidth();
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+    
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pdf.internal.pageSize.getHeight();
+    
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pdf.internal.pageSize.getHeight();
+                }
+    
+                pdf.save("diagrama_ishikawa.pdf");
+            })
+            .catch((error) => {
+                console.error('Error generating PDF:', error);
+            });
+    };
+    
+    
             
     const handleGuardarCambios = async () => {
         try {
@@ -262,6 +294,7 @@ const IshikawaRev = () => {
     };
 
     return (
+        <div id="pdf-content">
         <div>
             <div style={{ position: 'absolute', top: 0, left: 0 }}>
                 <Navigation />
@@ -300,9 +333,10 @@ const IshikawaRev = () => {
                     {
                     (!aprobado) ? null : (
                     <button onClick={Finalizar} >Finalizar</button>
+                    
                     )}
                     </div>
-
+                    <button onClick={handlePrintPDF}>Guardar en PDF</button>
                     <img src={Logo} alt="Logo Aguida" className='logo-empresa-ish' />
                     <h1 style={{position:'absolute', fontSize:'40px'}}>Ishikawa</h1>
                     <div className='posicion-en'>
@@ -537,6 +571,8 @@ const IshikawaRev = () => {
             </div>
             
         </div>
+        </div>
+
     );
 };
 

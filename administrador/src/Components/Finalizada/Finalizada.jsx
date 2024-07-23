@@ -130,39 +130,29 @@ const Finalizada = () => {
         const canvas = await html2canvas(input);
         const imgData = canvas.toDataURL('image/png');
         
-        const pdf = new jsPDF('l', 'mm', 'letter');
+        const pdf = new jsPDF('l', 'cm', 'letter');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         
         const imgProps = pdf.getImageProperties(imgData);
         const imageHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
-        // Check the height of the image
-        if (imageHeight < pdfHeight) {
-            // If the image height is less than the PDF page height, keep it in portrait mode
+    
+        // Define the threshold height for splitting the page
+        const thresholdHeight = pdfHeight * 0.75; // Adjust this value as needed
+    
+        if (imageHeight <= thresholdHeight) {
+            // If the image height is within the threshold, add it to the PDF as a single page
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imageHeight);
         } else {
-            // If the image height is more than the PDF page height, switch to landscape mode
-            const pdfLandscape = new jsPDF('l', 'cm', 'letter');
-            const pdfLandscapeWidth = pdfLandscape.internal.pageSize.getWidth();
-            const pdfLandscapeHeight = pdfLandscape.internal.pageSize.getHeight();
-            
-            const imageLandscapeHeight = (imgProps.height * pdfLandscapeWidth) / imgProps.width;
-            if (imageLandscapeHeight <= pdfLandscapeHeight) {
-                pdfLandscape.addImage(imgData, 'PNG', 0, 0, pdfLandscapeWidth, imageLandscapeHeight);
-            } else {
-                // If the image is still too large, split it into multiple pages
-                let y = 0;
-                while (y < imageLandscapeHeight) {
-                    pdfLandscape.addImage(imgData, 'PNG', 0, y, pdfLandscapeWidth, pdfLandscapeHeight);
-                    y += pdfLandscapeHeight;
-                    if (y < imageLandscapeHeight) {
-                        pdfLandscape.addPage();
-                    }
+            // Split the content into multiple pages
+            let yOffset = 0;
+            while (yOffset < imageHeight) {
+                pdf.addImage(imgData, 'PNG', 0, -yOffset, pdfWidth, imageHeight);
+                yOffset += pdfHeight;
+                if (yOffset < imageHeight) {
+                    pdf.addPage();
                 }
             }
-            pdfLandscape.save(`reporte_${id}.pdf`);
-            return;
         }
         
         pdf.save(`reporte_${id}.pdf`);

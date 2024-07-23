@@ -175,29 +175,33 @@ const AuditsTable = () => {
     const printContent = document.getElementById('print-content');
     const sections = printContent.querySelectorAll('.section');
     const canvasPromises = Array.from(sections).map(section =>
-      html2canvas(section, { scale: 2 })
+        html2canvas(section, { scale: 2 })
     );
 
     Promise.all(canvasPromises).then((canvases) => {
-      const pdf = new jsPDF('p', 'mm', 'letter');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      let position = 1;
+        const pdf = new jsPDF('p', 'mm', 'letter');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        let position = 0;
 
-      canvases.forEach((canvas, index) => {
-        const imgData = canvas.toDataURL('image/png');
-        const imgHeight = (pdfWidth / canvas.width) * canvas.height;
-        if (position + imgHeight > pdfHeight) {
-          pdf.addPage();
-          position = 0;
-        }
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        position += imgHeight + 10;
-      });
+        canvases.forEach((canvas, index) => {
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = pdfWidth - 20; // Ajustar ancho de imagen para márgenes
+            const imgHeight = (imgWidth / canvas.width) * canvas.height;
 
-      pdf.save('audits.pdf');
+            if (position + imgHeight > pdfHeight - 20) { // Ajustar altura disponible para márgenes
+                pdf.addPage();
+                position = 10; // Márgen superior en nueva página
+            }
+
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight); // Márgenes izquierdo y superior
+            position += imgHeight + 10; // Espacio entre imágenes
+        });
+
+        pdf.save('audits.pdf');
     });
-  };
+};
+
 
   return (
     <div className="audits-container">
@@ -224,49 +228,40 @@ const AuditsTable = () => {
         </div>
         {Object.keys(filteredAuditsByYear).map(year => (
           <div key={year} className="year-container">
-          <h3>Año: {year}</h3>
-          <div className="table-chart-container-audits">
+            <h3>Año: {year}</h3>
+            <div className="table-chart-container-audits">
             <div className="section">
-              <h3>Año: {year}</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Mes</th>
-                    <th>Tipo de Auditoría</th>
-                    <th>Estatus</th>
-                    <th>Porcentaje Total</th>
-                    <th>Promedio</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.keys(auditsByMonthAndYear[year]).map((month, monthIndex) => {
-                    const auditsInMonth = auditsByMonthAndYear[year][month];
-                    const monthAverage = calculateAverage(auditsInMonth);
-                    const auditTypes = auditsInMonth.map(audit => audit.TipoAuditoria).join(', ');
-                    const filteredStatuses = auditsInMonth
-                      .map(audit => audit.Estatus)
-                      .filter(status => status === "Aceptable" || status === "Excelente");
-        
-                    if (filteredStatuses.length === 0) {
-                      return null;
-                    }
-        
-                    return (
-                      <tr key={month}>
-                        <td>{month}</td>
-                        <td>{auditTypes}</td>
-                        <td>{filteredStatuses.join(', ')}</td>
-                        <td>{monthAverage}</td>
-                        {monthIndex === 0 && (
-                          <td rowSpan={Object.keys(auditsByMonthAndYear[year]).length + 1}>
-                            {averageByYear[year]}
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
+                    <h3>Año: {year}</h3>
+                    <table>
+                      <thead>
                         <tr>
-                          <td colSpan="4"><strong>Promedio</strong></td>
+                          <th>Mes</th>
+                          <th>Tipo de Auditoría</th>
+                          <th>Porcentaje Total</th>
+                          <th>Promedio</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.keys(auditsByMonthAndYear[year]).map((month, monthIndex) => {
+                          const auditsInMonth = auditsByMonthAndYear[year][month];
+                          const monthAverage = calculateAverage(auditsInMonth);
+                          const auditTypes = auditsInMonth.map(audit => audit.TipoAuditoria).join(', ');
+
+                          return (
+                            <tr key={month}>
+                              <td>{month}</td>
+                              <td>{auditTypes}</td>
+                              <td>{monthAverage}</td>
+                              {monthIndex === 0 && (
+                                <td rowSpan={Object.keys(auditsByMonthAndYear[year]).length + 1}>
+                                  {averageByYear[year]}
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                        <tr>
+                          <td colSpan="3"><strong>Promedio</strong></td>
                         </tr>
                       </tbody>
                     </table>

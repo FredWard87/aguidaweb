@@ -97,6 +97,20 @@ body {
     display: block;
 }
 
+.password-group {
+    position: relative;
+  }
+  
+  .password-toggle-icon {
+    position: absolute;
+    top: 50%;
+    right: 6%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+  }
+  
+
 /* Consultas de medios para pantallas pequeñas */
 @media (max-width: 768px) {
     .login-container {

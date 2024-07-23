@@ -291,7 +291,7 @@ const Terminada = () => {
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>Verificar el grado de cumplimiento con los documentos de referencia Sistema de Gestión de Inocuidad Alimentaria y Programa de Prerrequisitos</td>
+                                                        <td>Objetivo de ejemplo</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
