@@ -78,6 +78,8 @@ const CargaMasiva = () => {
         FechaElaboracion: mainData.FechaElaboracion ? convertExcelDateToJSDate(mainData.FechaElaboracion) : new Date(currentYear, 0, 1),
         Comentario: mainData.Comentario,
         Estatus: mainData.Estatus,
+        Objetivo: mainData.Objetivo,
+        PuntuacionMaxima: mainData.PuntuacionMaxima,
         Programa: []
       };
 
