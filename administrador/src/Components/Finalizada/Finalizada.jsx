@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+
+
 const Finalizada = () => {
     const { userData } = useContext(UserContext);
     const [datos, setDatos] = useState([]);
@@ -19,7 +21,7 @@ const Finalizada = () => {
     useEffect(() => {
         obtenerDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userData]);
+    },[userData]);
 
     const obtenerDatos = async () => {
         try {
@@ -28,14 +30,14 @@ const Finalizada = () => {
                 const datosFiltrados = response.data.filter((dato) => 
                     dato.Estado === "Finalizado"
                 );
-
+    
                 // Ordenar por FechaElaboracion del más reciente al más antiguo
                 datosFiltrados.sort((a, b) => {
                     const fechaElaboracionA = new Date(a.FechaElaboracion);
                     const fechaElaboracionB = new Date(b.FechaElaboracion);
                     return fechaElaboracionB - fechaElaboracionA;
                 });
-
+    
                 let conteo = {};
                 let total = 0;
                 datosFiltrados.forEach(dato => {
@@ -51,11 +53,11 @@ const Finalizada = () => {
                         });
                     });
                 });
-
+    
                 setDatos(datosFiltrados);
                 setCriteriosConteo(conteo);
                 setTotalCriterios(total);
-
+    
                 // Ocultar todas las duraciones excepto la más reciente por defecto
                 const duracionesOcultas = datosFiltrados.slice(1).map(dato => dato.Duracion);
                 setHiddenDurations(duracionesOcultas);
@@ -72,7 +74,7 @@ const Finalizada = () => {
             try {
                 const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/ishikawa`);
                 const dataFiltrada = response.data.filter(item => 
-                item.estado === 'En revisión' ||  item.estado === 'revisado' ||  item.estado === 'rechazado' ) ;
+                item.estado === 'En revisión' ||  item.estado === 'Revisado' ||  item.estado === 'Rechazado' || item.estado === 'Aprobado' ) ;
                 setIshikawas(dataFiltrada);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -123,41 +125,58 @@ const Finalizada = () => {
 
     const navIshikawa = (_id, id) => {
         navigate(`/ishikawa/${_id}/${id}`);
-    };
-
+    }; 
+    
     const generatePDF = async (id) => {
-        const input = document.getElementById(id);
-        const canvas = await html2canvas(input);
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdf = new jsPDF('l', 'cm', 'letter');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const imgProps = pdf.getImageProperties(imgData);
-        const imageHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const firstPartId = `reporte-${id}-first`;
+        const fourthPartId = `reporte-${id}-fourth`;
     
-        // Define the threshold height for splitting the page
-        const thresholdHeight = pdfHeight * 0.75; // Adjust this value as needed
+        try {
+            // Obtener elementos HTML
+            const inputFirstPart = document.getElementById(firstPartId);
+            const inputFourthPart = document.getElementById(fourthPartId);
     
-        if (imageHeight <= thresholdHeight) {
-            // If the image height is within the threshold, add it to the PDF as a single page
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imageHeight);
-        } else {
-            // Split the content into multiple pages
-            let yOffset = 0;
-            while (yOffset < imageHeight) {
-                pdf.addImage(imgData, 'PNG', 0, -yOffset, pdfWidth, imageHeight);
-                yOffset += pdfHeight;
-                if (yOffset < imageHeight) {
-                    pdf.addPage();
-                }
+            if (!inputFirstPart || !inputFourthPart) {
+                console.error('Elementos no encontrados para la generación del PDF.');
+                return;
             }
-        }
-        
-        pdf.save(`reporte_${id}.pdf`);
-    };
     
+            // Capturar las secciones como imágenes
+            const canvasFirstPart = await html2canvas(inputFirstPart);
+            const imgDataFirstPart = canvasFirstPart.toDataURL('image/png');
+    
+            const canvasFourthPart = await html2canvas(inputFourthPart);
+            const imgDataFourthPart = canvasFourthPart.toDataURL('image/png');
+    
+            // Crear el PDF
+            const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' para vertical, 'mm' para milímetros, 'a4' para tamaño A4
+            const pdfWidth = pdf.internal.pageSize.width;
+            const pdfHeight = pdf.internal.pageSize.height;
+    
+            // Añadir la primera imagen al PDF
+            const imgPropsFirstPart = pdf.getImageProperties(imgDataFirstPart);
+            const imgHeightFirstPart = (imgPropsFirstPart.height * pdfWidth) / imgPropsFirstPart.width;
+            pdf.addImage(imgDataFirstPart, 'PNG', 0, 0, pdfWidth, imgHeightFirstPart);
+    
+            // Añadir una nueva página y la segunda imagen al PDF
+            pdf.addPage();
+            const imgPropsFourthPart = pdf.getImageProperties(imgDataFourthPart);
+            const imgHeightFourthPart = (imgPropsFourthPart.height * pdfWidth) / imgPropsFourthPart.width;
+    
+            // Ajustar la imagen si es más alta que una página
+            let yOffset = 0;
+            while (yOffset < imgHeightFourthPart) {
+                pdf.addPage();
+                pdf.addImage(imgDataFourthPart, 'PNG', 0, -yOffset, pdfWidth, imgHeightFourthPart);
+                yOffset += pdfHeight;
+            }
+    
+            // Guardar el PDF
+            pdf.save(`reporte_${id}.pdf`);
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+        }
+    };
 
     return (
         <div className='espacio-repo'>
@@ -165,11 +184,18 @@ const Finalizada = () => {
                 <Navigation />
             </div>
             <div className="datos-container-repo">
+                
+                <h1 style={{ fontSize: '3rem', display: 'flex', justifyContent: 'center', marginTop: '0' }}>
+                    Reportes Finalizados
+                </h1>
+                <button onClick={generatePDF} style={{ marginBottom: '20px', padding: '10px 20px', fontSize: '16px' }}>
+                    Generar PDF
+                </button>
                 <div className="form-group-datos">
                     {datos.map((dato, periodIdx) => {
                         let conteo = {};
                         let total = 0;
-
+    
                         dato.Programa.forEach(programa => {
                             programa.Descripcion.forEach(desc => {
                                 if (desc.Criterio && desc.Criterio !== 'NA') {
@@ -181,20 +207,19 @@ const Finalizada = () => {
                                 }
                             });
                         });
-
+    
                         const puntosObtenidos = calcularPuntosTotales(conteo);
-
+    
                         return (
                             <div key={periodIdx}>
                                 <div className="duracion-bloque-repo">
                                     <h2 onClick={() => toggleDuration(dato.Duracion)}>
                                         Fecha de Elaboración: {formatDate(dato.FechaElaboracion)}
                                     </h2>
-                                    <button onClick={() => generatePDF(`reporte-${periodIdx}`)}>Guardar como PDF</button>
                                 </div>
-
-                                <div className={`update-button-container ${hiddenDurations.includes(dato.Duracion) ? 'hidden' : ''}`} id={`reporte-${periodIdx}`}>
-                                    <div className='contenedor-repo'>
+    
+                                <div className={`update-button-container ${hiddenDurations.includes(dato.Duracion) ? 'hidden' : ''}`}>
+                                    <div className='contenedor-repo' id={`reporte-${dato._id}-first`}>
                                         <div className="header-container-datos-repo">
                                             <img src={logo} alt="Logo Empresa" className="logo-empresa-repo" />
                                             <div className='encabezado'>
@@ -202,9 +227,15 @@ const Finalizada = () => {
                                             </div>
                                         </div>
                                         <div className='mover'>
-                                            <div className="dato"><span className="bold-text">Duración de la auditoría:</span> {dato.Duracion}</div>
-                                            <div className="dato"><span className="bold-text">Tipo de auditoría:</span> {dato.TipoAuditoria}</div>
-                                            <div className="dato"><span className="bold-text">Fecha de elaboración de reporte:</span> {formatDate(dato.FechaElaboracion)}</div>
+                                            <div className="dato">
+                                                <span className="bold-text">Duración de la auditoría:</span> {dato.Duracion}
+                                            </div>
+                                            <div className="dato">
+                                                <span className="bold-text">Tipo de auditoría:</span> {dato.TipoAuditoria}
+                                            </div>
+                                            <div className="dato">
+                                                <span className="bold-text">Fecha de elaboración de reporte:</span> {formatDate(dato.FechaElaboracion)}
+                                            </div>
                                         </div>
                                         <div className='tabla-reporte'>
                                             <table>
@@ -213,57 +244,61 @@ const Finalizada = () => {
                                                         <th colSpan="1" className="conformity-header-repo">Puntos Obtenidos</th>
                                                     </tr>
                                                 </thead>
-
-                                                <div className="horizontal-container">
-                                                    <div className="horizontal-group">
-                                                        <div className="horizontal-item">
-                                                            <div className="horizontal-inline">
-                                                                <div>Conforme:</div>
-                                                                {Object.keys(contarCriteriosPorTipo(conteo, 'Conforme')).map(criterio => (
-                                                                    <div key={criterio} className="horizontal-inline-item">  {conteo[criterio]}
+                                                <tbody>
+                                                    <tr>
+                                                        <td colSpan="2">
+                                                            <div className="horizontal-container">
+                                                                <div className="horizontal-group">
+                                                                    <div className="horizontal-item">
+                                                                        <div className="horizontal-inline">
+                                                                            <div>Conforme:</div>
+                                                                            <div style={{ marginLeft: '3px' }}>{dato.PuntuacionConf ? dato.PuntuacionConf : ''}</div>
+                                                                            {Object.keys(contarCriteriosPorTipo(conteo, 'Conforme')).map(criterio => (
+                                                                                <div key={criterio} className="horizontal-inline-item">{conteo[criterio]}</div>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                        <div className="horizontal-item">
-                                                            <div className="horizontal-inline">
-                                                                <div>NC Menor:</div>
-                                                                {Object.keys(contarCriteriosPorTipo(conteo, 'm')).map(criterio => (
-                                                                    <div key={criterio} className="horizontal-inline-item"> {conteo[criterio]}</div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="horizontal-group">
-                                                        <div className="horizontal-item">
-                                                            <div className="horizontal-inline">
-                                                                <div>NC Mayor:</div>
-                                                                {Object.keys(contarCriteriosPorTipo(conteo, 'M')).map(criterio => (
-                                                                    <div key={criterio} className="horizontal-inline-item"> {conteo[criterio]}
+                                                                    <div className="horizontal-item">
+                                                                        <div className="horizontal-inline">
+                                                                            <div>NC Menor:</div>
+                                                                            {Object.keys(contarCriteriosPorTipo(conteo, 'm')).map(criterio => (
+                                                                                <div key={criterio} className="horizontal-inline-item">{conteo[criterio]}</div>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                        <div className="horizontal-item">
-                                                            <div className="horizontal-inline">
-                                                                <div>NC Crítica:</div>
-                                                                {Object.keys(contarCriteriosPorTipo(conteo, 'C')).map(criterio => (
-                                                                    <div key={criterio} className="horizontal-inline-item"> {conteo[criterio]}
+                                                                </div>
+                                                                <div className="horizontal-group">
+                                                                    <div className="horizontal-item">
+                                                                        <div className="horizontal-inline">
+                                                                            <div>NC Mayor:</div>
+                                                                            {Object.keys(contarCriteriosPorTipo(conteo, 'M')).map(criterio => (
+                                                                                <div key={criterio} className="horizontal-inline-item">{conteo[criterio]}</div>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
-                                                                ))}
+                                                                    <div className="horizontal-item">
+                                                                        <div className="horizontal-inline">
+                                                                            <div>NC Crítica:</div>
+                                                                            {Object.keys(contarCriteriosPorTipo(conteo, 'C')).map(criterio => (
+                                                                                <div key={criterio} className="horizontal-inline-item">{conteo[criterio]}</div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="horizontal-group">
+                                                                    <div className="horizontal-item">Puntuación máxima: {dato.PuntuacionMaxima ? dato.PuntuacionMaxima : total}</div>
+                                                                    <div className="horizontal-item">Puntuación Obtenida: {dato.PuntuacionObten ? dato.PuntuacionObten : puntosObtenidos}</div>
+                                                                </div>
+                                                                <div className="horizontal-group">
+                                                                    <div className="horizontal-item">Porcentaje: {dato.PorcentajeTotal}%</div>
+                                                                    <div className="horizontal-item">Estatus: {dato.Estatus}</div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="horizontal-group">
-                                                        <div className="horizontal-item">Puntuación máxima: {total}</div>
-                                                        <div className="horizontal-item">Puntuación Obtenida: {puntosObtenidos}</div>
-                                                    </div>
-                                                    <div className="horizontal-group">
-                                                        <div className="horizontal-item">Porcentaje: {dato.PorcentajeTotal}%</div>
-                                                        <div className="horizontal-item">Estatus: {dato.Estatus}</div>
-                                                    </div>
-                                                </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
                                             </table>
+    
                                             <table>
                                                 <thead>
                                                     <tr>
@@ -272,10 +307,11 @@ const Finalizada = () => {
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>Verificar el grado de cumplimiento con los documentos de referencia Sistema de Gestión de Inocuidad Alimentaria y Programa de Prerrequisitos</td>
+                                                        <td>{dato.Objetivo ? dato.Objetivo : 'Objetivo de ejemplo'}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
+    
                                             <table>
                                                 <thead>
                                                     <tr>
@@ -284,8 +320,8 @@ const Finalizada = () => {
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>Programas</td>
-                                                        <td>Áreas auditadas</td>
+                                                        <td style={{ backgroundColor: '#bdfdbd', fontWeight: 'bold', width: '50%' }}>Programas</td>
+                                                        <td style={{ backgroundColor: '#bdfdbd', fontWeight: 'bold' }}>Áreas auditadas</td>
                                                     </tr>
                                                     <tr>
                                                         <td>
@@ -298,8 +334,8 @@ const Finalizada = () => {
                                                         <td>{dato.AreasAudi}</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Equipo auditor</td>
-                                                        <td>Participantes en el área del recorrido</td>
+                                                        <td style={{ backgroundColor: '#bdfdbd', fontWeight: 'bold' }}>Equipo auditor</td>
+                                                        <td style={{ backgroundColor: '#bdfdbd', fontWeight: 'bold' }}>Participantes en el área del recorrido</td>
                                                     </tr>
                                                     <tr>
                                                         <td>
@@ -321,7 +357,8 @@ const Finalizada = () => {
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                            <div>
+    
+                                            <div id={`reporte-${dato._id}-fourth`}>
                                                 <table>
                                                     <thead>
                                                         <tr>
@@ -344,22 +381,22 @@ const Finalizada = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                    {dato.Programa.map((programa, programIdx) =>
+                                                        {dato.Programa.map((programa, programIdx) =>
                                                             programa.Descripcion.map((desc, descIdx) => {
                                                                 const base64Prefix = 'data:image/png;base64,';
                                                                 const isBase64Image = desc.Hallazgo.includes(base64Prefix);
-
+    
                                                                 if (desc.Criterio !== 'NA' && desc.Criterio !== 'Conforme') {
                                                                     const ishikawa = ishikawas.find(ish => {
                                                                         return ish.idReq === desc.ID && ish.idRep === dato._id;
                                                                     });
-
+    
                                                                     const ajustarFecha = (fechaString) => {
                                                                         const fecha = new Date(fechaString);
                                                                         fecha.setMinutes(fecha.getMinutes() + fecha.getTimezoneOffset());
                                                                         return fecha.toLocaleDateString('es-ES');
                                                                     };
-
+    
                                                                     return (
                                                                         <tr key={descIdx}>
                                                                             <td>{desc.ID}</td>
@@ -367,19 +404,19 @@ const Finalizada = () => {
                                                                             <td className='alingR'>{desc.Requisito}</td>
                                                                             <td>{desc.Criterio}</td>
                                                                             <td>{desc.Observacion}</td>
-                                                                            <td key={descIdx}>
-                                                                            {desc.Hallazgo ? (
-                                                                                isBase64Image ? (
-                                                                                    <img
-                                                                                        src={desc.Hallazgo}
-                                                                                        alt="Evidencia"
-                                                                                        className="hallazgo-imagen"
-                                                                                    />
-                                                                                ) : (
-                                                                                    <span>{desc.Hallazgo}</span>
-                                                                                )
-                                                                            ) : null}
-                                                                        </td>
+                                                                            <td>
+                                                                                {desc.Hallazgo ? (
+                                                                                    isBase64Image ? (
+                                                                                        <img
+                                                                                            src={desc.Hallazgo}
+                                                                                            alt="Evidencia"
+                                                                                            className="hallazgo-imagen"
+                                                                                        />
+                                                                                    ) : (
+                                                                                        <span>{desc.Hallazgo}</span>
+                                                                                    )
+                                                                                ) : null}
+                                                                            </td>
                                                                             <td>{ishikawa ? (ishikawa.actividades.length > 0 ? ishikawa.actividades[0].actividad : '') : ''}</td>
                                                                             <td>{ishikawa ? (ishikawa.actividades.length > 0 ? ishikawa.actividades[0].responsable : '') : ''}</td>
                                                                             <td>
@@ -388,7 +425,9 @@ const Finalizada = () => {
                                                                                 ) : ''}
                                                                             </td>
                                                                             <td>
-                                                                                <button onClick={() => navIshikawa(dato._id, desc.ID)}>{ishikawa ? ishikawa.estado : 'Pendiente'}</button>
+                                                                                <button className='button-estado' onClick={() => navIshikawa(dato._id, desc.ID)}>
+                                                                                    {ishikawa ? ishikawa.estado : 'Pendiente'}
+                                                                                </button>
                                                                             </td>
                                                                         </tr>
                                                                     );
@@ -410,6 +449,6 @@ const Finalizada = () => {
             </div>
         </div>
     );
-};
+};    
 
 export default Finalizada;

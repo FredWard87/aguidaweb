@@ -35,7 +35,7 @@ const UsuariosSchema = new mongoose.Schema({
       return this.TipoUsuario === 'auditor';
     }
   },
-  TipoUsuario: { type: String, required: true },
+  TipoUsuario: { type: String },
   PromedioEvaluacion: { type: Number, default: 0 },
   PuntuacionEspecialidad: { type: Number, default: 0 },
   FormaParteEquipoInocuidad: { type: Boolean, default: false },
@@ -46,7 +46,7 @@ const UsuariosSchema = new mongoose.Schema({
       calificacion: { type: Number, required: true }
     }
   ],
-  Departamento: { type: String, required: true } // Añadido
+  Departamento: { type: String} // Añadido
 });
 
 // Hash de la contraseña antes de guardar

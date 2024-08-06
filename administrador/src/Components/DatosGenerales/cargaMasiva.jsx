@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import './css/Carga.css'; // Importa tu archivo CSS aquí
 import Navigation from "../Navigation/Navbar"; // Importa tu componente de navegación
+import Swal from 'sweetalert2'; // Importa SweetAlert
 
 const CargaMasiva = () => {
   const [file, setFile] = useState(null);
@@ -16,8 +17,11 @@ const CargaMasiva = () => {
     e.preventDefault();
 
     if (!file) {
-      console.error('No file selected');
-      alert('Por favor selecciona un archivo');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Archivo no seleccionado',
+        text: 'Por favor selecciona un archivo'
+      });
       return;
     }
 
@@ -42,7 +46,11 @@ const CargaMasiva = () => {
 
       if (missingFields.length > 0) {
         console.error('Faltan campos requeridos:', missingFields);
-        alert('Por favor completa todos los campos requeridos en los datos del archivo');
+        Swal.fire({
+          icon: 'error',
+          title: 'Campos requeridos faltantes',
+          text: 'Por favor completa todos los campos requeridos en los datos del archivo'
+        });
         return;
       }
 
@@ -80,11 +88,13 @@ const CargaMasiva = () => {
         Estatus: mainData.Estatus,
         Objetivo: mainData.Objetivo,
         PuntuacionMaxima: mainData.PuntuacionMaxima,
+        PuntuacionObten: '',
+        PuntuacionConf: '',
         Programa: []
       };
 
       let programa = {
-        Nombre: "",
+        Nombre: "", 
         Porcentaje: 0,
         Descripcion: []
       };
@@ -141,12 +151,68 @@ const CargaMasiva = () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          params: {
+            overwrite: false // No permitir sobreescritura inicialmente
+          }
         });
+
         console.log('Response:', response.data);
-        alert('Datos cargados exitosamente');
+        Swal.fire({
+          icon: 'success',
+          title: 'Datos cargados exitosamente',
+          text: 'Los datos han sido cargados correctamente'
+        }).then(() => {
+          setFile(null); // Limpiar el subidor de archivos
+          window.location.reload(); // Recargar la página
+        });
       } catch (error) {
-        console.error('Error:', error);
-        alert('Error al cargar los datos');
+        if (error.response && error.response.status === 409) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Datos ya existen',
+            text: error.response.data.message,
+            showCancelButton: true,
+            confirmButtonText: 'Sobrescribir',
+            cancelButtonText: 'Cancelar'
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+              try {
+                const overwriteResponse = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/datos/carga-masiva`, transformedData, {
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  params: {
+                    overwrite: true // Permitir sobreescritura
+                  }
+                });
+
+                console.log('Response:', overwriteResponse.data);
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Datos sobrescritos exitosamente',
+                  text: 'Los datos han sido sobrescritos correctamente'
+                }).then(() => {
+                  setFile(null); // Limpiar el subidor de archivos
+                  window.location.reload(); // Recargar la página
+                });
+              } catch (overwriteError) {
+                console.error('Error al sobrescribir los datos:', overwriteError);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error al sobrescribir los datos',
+                  text: 'Hubo un problema al sobrescribir los datos'
+                });
+              }
+            }
+          });
+        } else {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al cargar los datos',
+            text: 'Hubo un problema al cargar los datos'
+          });
+        }
       }
     };
 
