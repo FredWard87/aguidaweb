@@ -17,6 +17,7 @@ const iniciarSesion = async (req, res) => {
     if (!esContraseñaCorrecta) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
+    
 
     let tipoUsuario = '';
     switch (usuario.TipoUsuario) {

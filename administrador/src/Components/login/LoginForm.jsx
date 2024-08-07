@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Importa useNavigate si lo usas aquí
 import { UserContext } from '../../App';
 import './css/login.css';
 import logo from '../assets/img/logoAguida.png';
@@ -10,10 +10,10 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ Correo: '', Contraseña: '' });
-  const [error] = useState('');
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { setUserData } = useContext(UserContext);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Mantén el useNavigate aquí para redirección
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,19 +35,13 @@ const LoginForm = () => {
         return;
       }
 
-      // Guardar el token y los datos del usuario en el almacenamiento local
       localStorage.setItem('token', token);
       setUserData(usuario);
 
-      // Redireccionar al usuario a la página de inicio
-      navigate('/home');
+      navigate('/home'); // Redirige al usuario a la página de inicio
     } catch (error) {
+      setError('Credenciales inválidas. Por favor, intenta de nuevo.');
       console.error(error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Credenciales inválidas. Por favor, intenta de nuevo.',
-      });
     }
   };
 
